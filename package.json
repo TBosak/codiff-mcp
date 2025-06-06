@@ -1,18 +1,24 @@
 {
   "name": "codiff-mcp",
-  "version": "0.1.1",
+  "version": "0.2.4",
   "description": "A Model Context Protocol (MCP) server for code diffing",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "bin": {
-    "codiff": "./index.js"
+    "codiff-mcp": "dist/index.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
-    "diff": "^5.1.0"
+    "diff": "^5.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.2"
   },
   "scripts": {
-    "start": "codiff"
+    "start": "codiff-mcp",
+    "build": "npx esbuild index.js --bundle --platform=node --format=esm --banner:js=\"#!/usr/bin/env node\" --outdir=dist",
+    "prepublishOnly": "npm run build"
   },
   "author": "",
   "license": "MIT",
