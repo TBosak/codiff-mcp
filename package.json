@@ -1,0 +1,25 @@
+{
+  "name": "codiff-mcp",
+  "version": "0.1.1",
+  "description": "A Model Context Protocol (MCP) server for code diffing",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "codiff": "./index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "diff": "^5.1.0"
+  },
+  "scripts": {
+    "start": "codiff"
+  },
+  "author": "",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "diff",
+    "code-diff",
+    "model-context-protocol"
+  ]
+}
