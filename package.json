@@ -1,7 +1,7 @@
 {
   "name": "codiff-mcp",
-  "version": "0.2.4",
-  "description": "A Model Context Protocol (MCP) server for code diffing",
+  "version": "0.2.7",
+  "description": "A Model Context Protocol (MCP) server for code diffing with intelligent token optimization",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -17,6 +17,11 @@
   },
   "scripts": {
     "start": "codiff-mcp",
+    "start:save-tokens": "codiff-mcp --save-tokens",
+    "start:ts": "codiff-mcp -s",
+    "start:accuracy": "codiff-mcp --accuracy",
+    "start:acc": "codiff-mcp -a",
+    "start:full": "codiff-mcp --save-tokens --accuracy",
     "build": "npx esbuild index.js --bundle --platform=node --format=esm --banner:js=\"#!/usr/bin/env node\" --outdir=dist",
     "prepublishOnly": "npm run build"
   },
@@ -26,6 +31,7 @@
     "mcp",
     "diff",
     "code-diff",
-    "model-context-protocol"
+    "model-context-protocol",
+    "token-optimization"
   ]
 }

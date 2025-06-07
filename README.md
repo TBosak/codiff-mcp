@@ -1,10 +1,19 @@
 # Codiff MCP Server
 
-A simple MCP server that computes line-based diffs between two text inputs.
+A Model Context Protocol (MCP) server for intelligent text diffing with token optimization.
 
-## Setup in Cursor
+## Features
 
-Add this to your `~/.cursor/mcp.json` file under `mcpServers`:
+- **Smart Change Detection**: Shows only insertions/deletions by default to minimize tokens
+- **Identical Text Optimization**: Returns "identical" immediately for identical texts
+- **Token-Saving Mode**: Delegates small/similar diffs to LLM when more efficient
+- **Accuracy Mode**: Optional full context including unchanged text (with cost warnings)
+- **Cost Transparency**: Warns when diff tool costs more than original texts
+
+## Quick Setup
+
+### Standard Mode (Recommended)
+Shows only changes, minimizes token usage:
 
 ```json
 {
@@ -17,58 +26,112 @@ Add this to your `~/.cursor/mcp.json` file under `mcpServers`:
 }
 ```
 
-## Usage
-
-The tool provides a single `codiff` function that takes two text inputs:
-
-- `original`: The baseline text to compare against
-- `modified`: The updated text to compare
-
-## Rule for Cursor
-
-To automatically use codiff whenever you ask for comparisons, add this rule to your project's `.cursorrules` file:
+### Token-Saving Mode
+Smart delegation to LLM for efficiency:
 
 ```json
 {
-    "rules": {
-        "general_rules": [
-            {
-                "description": "When the user requests comparisons, diffs, or change analysis between any text/code (e.g., 'compare these files', 'what changed', 'show differences', 'diff these code blocks'), ALWAYS use the codiff MCP tool first instead of manual analysis. Use codiff for file comparisons, version analysis, before/after comparisons, and any request involving 'compare', 'diff', 'changes', or 'differences'. Process: 1) Call codiff tool with original and modified inputs, 2) Present structured diff results, 3) Explain key changes focusing on insertions/deletions, 4) Highlight impact of changes.",
-                "type": "tool_prioritization_codiff"
-            }
-        ]
+  "mcpServers": {
+    "codiff-mcp": {
+      "command": "npx",
+      "args": ["-y", "codiff-mcp@latest", "--save-tokens"]
     }
+  }
 }
 ```
 
-This ensures Cursor automatically uses codiff whenever you ask questions like:
-- "Compare these two files"
-- "What changed between these versions?"
-- "Show me the differences"
-- "Diff these code blocks"
+### Accuracy Mode
+⚠️ Includes unchanged text (may increase costs):
 
-## Example
-
-**Input:**
+```json
+{
+  "mcpServers": {
+    "codiff-mcp": {
+      "command": "npx",
+      "args": ["-y", "codiff-mcp@latest", "--accuracy"]
+    }
+  }
+}
 ```
-original: "Hello world"
-modified: "Hello beautiful world"
+
+## Usage
+
+The `codiff` tool compares two text inputs:
+- `original`: Baseline text
+- `modified`: Updated text
+
+### Modes
+
+| Mode | Flags | Behavior |
+|------|-------|----------|
+| **Standard** | (default) | Shows only changes, warns about costs |
+| **Token-Saving** | `--save-tokens`, `-s` | Delegates small/similar diffs to LLM |
+| **Accuracy** | `--accuracy`, `-a` | Includes unchanged text ⚠️ |
+| **Combined** | `-s -a` | Smart delegation + full context |
+
+## Examples
+
+### Identical Texts
+```json
+{
+  "result": "identical",
+  "message": "The provided texts are identical - no differences found.",
+  "savings": { "estimatedSavings": 5 }
+}
 ```
 
-**Output:**
+### Standard Mode (Changes Only)
 ```json
 {
   "diff": [
-    {"type": "equal", "text": "Hello "},
-    {"type": "insert", "text": "beautiful "},
-    {"type": "equal", "text": "world"}
+    {"type": "delete", "text": "Hello world\n"},
+    {"type": "insert", "text": "Hello beautiful world\n"}
   ],
-  "savings": {
-    "originalTokens": 2,
-    "modifiedTokens": 3,
-    "inputCost": 5,
-    "outputCost": 4,
-    "estimatedSavings": 1
+  "mode": "standard",
+  "savings": { "estimatedSavings": 5 }
+}
+```
+
+### Cost Warning
+```json
+{
+  "warnings": [
+    "INCREASED COST: This diff costs 5 more tokens than sending the original texts."
+  ]
+}
+```
+
+### Token-Saving Delegation
+```json
+{
+  "result": "delegate_to_llm",
+  "message": "For optimal token efficiency, please analyze these texts directly...",
+  "recommendation": "Compare manually by scanning for differences..."
+}
+```
+
+## Auto-Usage Rule
+
+Add to `.cursorrules` for automatic diffing:
+
+```json
+{
+  "rules": {
+    "general_rules": [
+      {
+        "description": "When the user requests comparisons, diffs, or change analysis, ALWAYS use the codiff MCP tool first. Use for file comparisons, version analysis, and any request involving 'compare', 'diff', 'changes', or 'differences'.",
+        "type": "tool_prioritization_codiff"
+      }
+    ]
   }
 }
+```
+
+## Development
+
+```bash
+npm run start              # Standard mode
+npm run start:save-tokens  # Token-saving mode  
+npm run start:accuracy    # Accuracy mode
+npm run start:full        # Combined mode
 ```
